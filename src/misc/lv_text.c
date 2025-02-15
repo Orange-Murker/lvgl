@@ -106,7 +106,7 @@ void lv_text_get_size(lv_point_t * size_res, const char * text, const lv_font_t 
 
     /*Calc. the height and longest line*/
     while(text[line_start] != '\0') {
-        new_line_start += lv_text_get_next_line(&text[line_start], font, letter_space, max_width, NULL, flag);
+        new_line_start += lv_text_get_next_line(&text[line_start], LV_TEXT_LEN_MAX, font, letter_space, max_width, NULL, flag);
 
         if((unsigned long)size_res->y + (unsigned long)letter_height + (unsigned long)line_space > LV_MAX_OF(int32_t)) {
             LV_LOG_WARN("integer overflow while calculating text height");
@@ -195,7 +195,7 @@ bool lv_text_is_cmd(lv_text_cmd_state_t * state, uint32_t c)
  * @param max_width max width of the text (break the lines to fit this size). Set COORD_MAX to avoid line breaks
  * @param flags settings for the text from 'txt_flag_type' enum
  * @param[out] word_w_ptr width (in pixels) of the parsed word. May be NULL.
- * @param cmd_state Pointer to a lv_text_cmd_state_t variable which stored the current state of command proocessing
+ * @param cmd_state Pointer to a lv_text_cmd_state_t variable which stored the current state of command processing
  * @return the index of the first char of the next word (in byte index not letter index. With UTF-8 they are different)
  */
 static uint32_t lv_text_get_next_word(const char * txt, const lv_font_t * font,
@@ -246,6 +246,9 @@ static uint32_t lv_text_get_next_word(const char * txt, const lv_font_t * font,
         if(break_index == NO_BREAK_FOUND && (cur_w - letter_space) > max_width) {
             break_index = i;
             break_letter_count = word_len - 1;
+            if(flag & LV_TEXT_FLAG_BREAK_ALL) {
+                break;
+            }
             /*break_index is now pointing at the character that doesn't fit*/
         }
 
@@ -315,9 +318,9 @@ static uint32_t lv_text_get_next_word(const char * txt, const lv_font_t * font,
 #endif
 }
 
-uint32_t lv_text_get_next_line(const char * txt, const lv_font_t * font,
-                               int32_t letter_space, int32_t max_width,
-                               int32_t * used_width, lv_text_flag_t flag)
+uint32_t lv_text_get_next_line(const char * txt, uint32_t len,
+                               const lv_font_t * font, int32_t letter_space,
+                               int32_t max_width, int32_t * used_width, lv_text_flag_t flag)
 {
     if(used_width) *used_width = 0;
 
@@ -331,10 +334,10 @@ uint32_t lv_text_get_next_line(const char * txt, const lv_font_t * font,
      *without thinking about word wrapping*/
     if((flag & LV_TEXT_FLAG_EXPAND) || (flag & LV_TEXT_FLAG_FIT)) {
         uint32_t i;
-        for(i = 0; txt[i] != '\n' && txt[i] != '\r' && txt[i] != '\0'; i++) {
+        for(i = 0; i < len && txt[i] != '\n' && txt[i] != '\r' && txt[i] != '\0'; i++) {
             /*Just find the new line chars or string ends by incrementing `i`*/
         }
-        if(txt[i] != '\0') i++;    /*To go beyond `\n`*/
+        if(i < len && txt[i] != '\0') i++;    /*To go beyond `\n`*/
         if(used_width) *used_width = -1;
         return i;
     }
@@ -344,7 +347,7 @@ uint32_t lv_text_get_next_line(const char * txt, const lv_font_t * font,
 
     uint32_t i = 0;                                        /*Iterating index into txt*/
 
-    while(txt[i] != '\0' && max_width > 0) {
+    while(i < len && txt[i] != '\0' && max_width > 0) {
         lv_text_flag_t word_flag = flag;
         if(i == 0) word_flag |= LV_TEXT_FLAG_BREAK_ALL;
 
@@ -426,7 +429,7 @@ int32_t lv_text_get_width_with_flags(const char * txt, uint32_t length, const lv
     lv_text_cmd_state_t cmd_state = LV_TEXT_CMD_STATE_WAIT;
 
     if(length != 0) {
-        while(i < length) {
+        while(txt[i] != '\0' && i < length) {
             uint32_t letter;
             uint32_t letter_next;
             lv_text_encoded_letter_next_2(txt, &letter, &letter_next, &i);
@@ -645,6 +648,11 @@ static uint32_t lv_text_utf8_next(const char * txt, uint32_t * i)
     /*Dummy 'i' pointer is required*/
     uint32_t i_tmp = 0;
     if(i == NULL) i = &i_tmp;
+
+    /* Ensure the string is not null */
+    if(txt == NULL || txt[*i] == '\0') {
+        return result;
+    }
 
     /*Normal ASCII*/
     if(LV_IS_ASCII(txt[*i])) {

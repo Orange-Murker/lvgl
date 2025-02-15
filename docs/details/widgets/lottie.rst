@@ -44,7 +44,7 @@ Set a buffer
 ------------
 
 In order to render the animation a buffer needs to be assigned to the Lottie Widget.
-The animations are rendered in ARGB8888 format, therefor the buffer's size should be equal to
+The animations are rendered in ARGB8888 format, therefore the buffer's size should be equal to
 ``target_width x target_height x 4`` bytes.
 
 To keep the buffer size and the animation size consistent,
@@ -69,7 +69,9 @@ array. E.g.:
 
 .. code-block:: shell
 
-   ./filetohex.py path/to/lottie.json > out.txt
+   ./filetohex.py path/to/lottie.json --filter-character --null-terminate > out.txt
+
+``--filter-character`` filters out non-ASCII characters and ``--null-terminate`` makes sure that a trailing zero is appended to properly close the string.
 
 To create an animation from data use
 :cpp:expr:`lv_lottie_set_src_data(lottie, data, sizeof(data))`

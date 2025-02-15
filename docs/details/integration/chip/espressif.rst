@@ -42,7 +42,7 @@ In case you do not want to use esp_lvgl_port, you can add `LVGL component <https
 
 .. code-block:: sh
 
-   idf.py add-dependency lvgl/lvgl^9.*
+   idf.py add-dependency "lvgl/lvgl^9.*"
 
 Adjust the ``^9.*`` part to match your LVGL version requirement. More information on version specifications can be found in the `IDF Component Manager documentation <https://docs.espressif.com/projects/idf-component-manager/en/latest/reference/versioning.html#range-specifications>`__. During the next build, the LVGL component will be fetched from the component registry and added to the project.
 
@@ -84,7 +84,7 @@ To add a display or touch driver to your project, use a command like:
 Using the File System under ESP-IDF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ESP-IDF uses the standard C functions (``fopen``, ``fread``) in all storage related APIs.
+ESP-IDF uses the standard C file operation functions (``fopen``, ``fread``) in all its storage related APIs.
 This allows seamless interoperability with LVGL when enabling the :c:macro:`LV_USE_FS_STDIO` configuration.
 The process is described in details below, using ``SPIFFS`` as demonstration.
 
@@ -195,4 +195,4 @@ The process is described in details below, using ``SPIFFS`` as demonstration.
       CONFIG_PARTITION_TABLE_CUSTOM=y
       CONFIG_LV_USE_FS_STDIO=y
       CONFIG_LV_FS_STDIO_LETTER=65
-      CONFIG_LV_LV_FS_DEFAULT_DRIVE_LETTER=65
+      CONFIG_LV_FS_DEFAULT_DRIVER_LETTER=65

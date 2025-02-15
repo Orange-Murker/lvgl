@@ -31,6 +31,12 @@
  **********************/
 
 /**********************
+ *  GLOBAL VARIABLES
+ **********************/
+
+const lv_font_t * const lv_font_default = LV_FONT_DEFAULT;
+
+/**********************
  * GLOBAL PROTOTYPES
  **********************/
 
@@ -72,6 +78,7 @@ bool lv_font_get_glyph_dsc(const lv_font_t * font_p, lv_font_glyph_dsc_t * dsc_o
     const lv_font_t * f = font_p;
 
     dsc_out->resolved_font = NULL;
+    dsc_out->req_raw_bitmap = 0;
 
     while(f) {
         bool found = f->get_glyph_dsc(f, dsc_out, letter, f->kerning == LV_FONT_KERNING_NONE ? 0 : letter_next);
@@ -139,9 +146,10 @@ int32_t lv_font_get_line_height(const lv_font_t * font)
     return font->line_height;
 }
 
-const lv_font_t * lv_font_default(void)
+
+const lv_font_t * lv_font_get_default(void)
 {
-    return LV_FONT_DEFAULT;
+    return lv_font_default;
 }
 
 /**********************
